@@ -42,7 +42,9 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 func (s *Server) Start() (int, error) {
 	// Define routes
 	s.router.GET("/services/config", s.getServicesConfig)
-	s.router.GET("/configfiles/json/:appId/:cluster/:namespace", s.getConfigJsonContent)
+	s.router.GET("/configfiles/json/:appId/:cluster/:namespace", s.getConfigfileJsonContent)
+	s.router.GET("/configs/:appId/:cluster/:namespace", s.getConfigJsonContent)
+	s.router.GET("/notifications/v2", s.getNotificationsJsonContent)
 
 	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", s.config.Port))
 	if err != nil {
