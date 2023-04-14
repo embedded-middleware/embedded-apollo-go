@@ -6,8 +6,15 @@ import (
 )
 
 type Cluster struct {
-	Name       string
-	Namespaces sync.Map
+	Name          string
+	Namespaces    sync.Map
+	Notifications sync.Map
+}
+
+// Notification NotificationId use to detect data updates
+type Notification struct {
+	NamespaceName  string `json:"namespaceName"`
+	NotificationId int64  `json:"notificationId"`
 }
 
 func (s *Server) AddCluster(appId string, clusterName string) error {

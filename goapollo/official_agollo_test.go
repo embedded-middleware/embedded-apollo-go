@@ -35,3 +35,34 @@ func TestOfficialAgolloTestGetConfig(t *testing.T) {
 	value := client.GetConfig("namespace").GetStringValue("key", "")
 	require.Equal(t, "value", value)
 }
+
+func TestOfficialAgolloTestNotifyConfig(t *testing.T) {
+	server, port := setupGoapollo(t)
+	err := server.AddApp("appId")
+	require.NoError(t, err)
+	err = server.AddCluster("appId", "cluster")
+	require.NoError(t, err)
+	err = server.AddNamespaceWithValue("appId", "cluster", "namespace", "{\"key\":\"value\"}")
+	require.NoError(t, err)
+	defer server.Close()
+
+	c := &config.AppConfig{
+		AppID:          "appId",
+		Cluster:        "cluster",
+		NamespaceName:  "namespace",
+		IP:             fmt.Sprintf("http://localhost:%d", port),
+		IsBackupConfig: false,
+	}
+	client, err := agollo.StartWithConfig(func() (*config.AppConfig, error) {
+		return c, nil
+	})
+	require.NoError(t, err)
+	tc := &testChangeListener{listenKey: "key", notify: make(chan struct{})}
+	client.AddChangeListener(tc)
+
+	err = server.UpdateNamespaceWithValue("appId", "cluster", "namespace", "{\"key\":\"newValue\"}")
+	require.NoError(t, err)
+	<-tc.notify
+	t.Log("new value: ", tc.newValue)
+	require.Equal(t, "newValue", tc.newValue)
+}

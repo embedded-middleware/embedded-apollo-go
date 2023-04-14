@@ -2,9 +2,30 @@ package goapollo
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/stretchr/testify/require"
 )
+
+type testChangeListener struct {
+	listenKey string
+	newValue  string
+	notify    chan struct{}
+}
+
+func (tc *testChangeListener) OnChange(event *storage.ChangeEvent) {
+	change, ok := event.Changes[tc.listenKey]
+	if !ok {
+		return
+	}
+	tc.newValue = change.NewValue.(string)
+	tc.notify <- struct{}{}
+}
+
+func (tc *testChangeListener) OnNewestChange(event *storage.FullChangeEvent) {
+
+}
 
 func setupGoapollo(t *testing.T) (*Server, int) {
 	cfg := &ServerConfig{
