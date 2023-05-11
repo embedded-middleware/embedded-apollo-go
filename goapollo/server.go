@@ -58,7 +58,11 @@ func (s *Server) Start() (int, error) {
 		}
 	}()
 
-	addr := ln.Addr().(*net.TCPAddr)
+	addr, ok := ln.Addr().(*net.TCPAddr)
+	if !ok {
+		_ = s.server.Close()
+		return 0, fmt.Errorf("failed to get listen port")
+	}
 	return addr.Port, nil
 }
 
